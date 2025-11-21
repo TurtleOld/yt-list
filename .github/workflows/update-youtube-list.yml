@@ -20,13 +20,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Если зависимостей нет — этот шаг можно удалить
-      - name: Install dependencies
-        if: hashFiles('requirements.txt') != ''
-        run: pip install -r requirements.txt
-
       - name: Generate google_youtube.rsc
-        run: python generate_goog_youtube_rsc.py
+        run: python generate_goog_rsc.py
 
       - name: Commit updated .rsc
         uses: stefanzweifel/git-auto-commit-action@v5
