@@ -3,7 +3,7 @@ import json
 import urllib.request
 
 URL = "https://www.gstatic.com/ipranges/goog.json"
-LIST_NAME = "youtube"            # имя address-list на MikroTik
+LIST_NAME = "google"            # имя address-list на MikroTik
 OUTPUT_FILE = "google_youtube.rsc"
 
 
