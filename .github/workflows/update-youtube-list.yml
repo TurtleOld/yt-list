@@ -7,6 +7,9 @@ on:
   # Возможность запустить руками из вкладки Actions
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   update-list:
     runs-on: ubuntu-latest
