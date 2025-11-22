@@ -1,0 +1,32 @@
+name: Update OpenAI list
+
+on:
+  schedule:
+    # Каждый день в 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-list:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate gen_openai_rsc.py
+        run: python gen_openai_rsc.py
+
+      - name: Commit updated .rsc
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update gen_openai_rsc.rsc"
+          file_pattern: "gen_openai_rsc.rsc"
