@@ -44,7 +44,7 @@ def generate_rsc(domains: Iterable[str], list_name: str = LIST_NAME) -> str:
                 continue
             seen.add(ip)
             lines.append(
-                f'add list={list_name} address={ip} comment="{domain}"'
+                f'add list={list_name} address={ip}'
             )
 
     return "\n".join(lines) + "\n"
