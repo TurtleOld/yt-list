@@ -12,7 +12,7 @@ DOMAINS = [
     "oaiusercontent.com",
 ]
 
-OUTPUT_FILE = Path("gen_openai_rsc.rsc")
+OUTPUT_FILE = Path("openai-address-list.rsc")
 ADDRESS_LIST_NAME = "openai"
 
 
