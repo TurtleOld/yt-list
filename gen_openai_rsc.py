@@ -6,6 +6,9 @@ from pathlib import Path
 
 DOMAINS = [
     "chatgpt.com",
+    "chat.openai.com",
+    "cdn.oaistatic.com",
+    "oaistatic.com",
 ]
 
 OUTPUT_FILE = Path("openai-address-list.rsc")
@@ -60,7 +63,6 @@ def main() -> None:
     )
 
     lines: list[str] = []
-
 
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     lines.append("/ip firewall address-list")
