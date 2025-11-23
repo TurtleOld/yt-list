@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import socket
 import ipaddress
 from datetime import datetime
