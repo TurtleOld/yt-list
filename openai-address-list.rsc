@@ -1,8 +1,8 @@
 /ip firewall address-list
 remove [find list=openai]
-add list=openai address=162.159.140.245
-add list=openai address=172.66.0.243
-add list=openai address=104.18.37.228
-add list=openai address=172.64.150.28
-add list=openai address=104.18.32.47
-add list=openai address=172.64.155.209
+add list=openai address=104.18.32.0/24 comment="chatgpt.com"
+add list=openai address=104.18.37.0/24 comment="chat.openai.com"
+add list=openai address=104.18.41.0/24 comment="cdn.oaistatic.com,oaistatic.com"
+add list=openai address=172.64.146.0/24 comment="cdn.oaistatic.com,oaistatic.com"
+add list=openai address=172.64.150.0/24 comment="chat.openai.com"
+add list=openai address=172.64.155.0/24 comment="chatgpt.com"
