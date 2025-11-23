@@ -6,10 +6,6 @@ from pathlib import Path
 
 DOMAINS = [
     "chatgpt.com",
-    "chat.openai.com",
-    "cdn.oaistatic.com",
-    "oaistatic.com",
-    "oaiusercontent.com",
 ]
 
 OUTPUT_FILE = Path("openai-address-list.rsc")
