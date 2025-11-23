@@ -1,63 +1,86 @@
-from __future__ import annotations
-
+#!/usr/bin/env python3
 import socket
-import sys
+import ipaddress
+from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Set
 
-LIST_NAME = "openai"
-
-OUTPUT_PATH = Path("openai-address-list.rsc")
-
-DEFAULT_DOMAINS = [
-    "api.openai.com",
-    "chat.openai.com",
+DOMAINS = [
     "chatgpt.com",
+    "chat.openai.com",
+    "cdn.oaistatic.com",
+    "oaistatic.com",
+    "oaiusercontent.com",
 ]
 
+OUTPUT_FILE = Path("gen_openai_rsc.rsc")
+ADDRESS_LIST_NAME = "openai"
 
-def resolve_domain(domain: str) -> Set[str]:
-    """Резолвим домен в множество IPv4-адресов."""
-    ips: Set[str] = set()
+
+def resolve_ipv4(domain: str) -> set[str]:
+    """Резолвим только IPv4-адреса для домена."""
+    ips: set[str] = set()
     try:
-        for family, _, _, _, sockaddr in socket.getaddrinfo(domain, None):
-            if family == socket.AF_INET:  # только IPv4
-                ip, *_ = sockaddr
-                ips.add(ip)
+        results = socket.getaddrinfo(domain, 443, type=socket.SOCK_STREAM)
     except socket.gaierror as e:
-        print(f"# failed to resolve {domain}: {e}", file=sys.stderr)
+        print(f"# warn: failed to resolve {domain}: {e}")
+        return ips
+
+    for family, _, _, _, sockaddr in results:
+        if family == socket.AF_INET:
+            ip = sockaddr[0]
+            ips.add(ip)
     return ips
 
 
-def generate_rsc(domains: Iterable[str], list_name: str = LIST_NAME) -> str:
-    """Формируем текст rsc-скрипта для MikroTik."""
-    lines = [
-        "/ip firewall address-list",
-        f"remove [find list={list_name}]",
-    ]
+def build_networks() -> dict[ipaddress.IPv4Network, set[str]]:
+    """
+    Возвращаем mapping:
+      /24-сеть -> множество доменов, из которых она получилась.
+    """
+    net_to_domains: dict[ipaddress.IPv4Network, set[str]] = {}
 
-    seen: Set[str] = set()
+    for domain in DOMAINS:
+        ips = resolve_ipv4(domain)
+        if not ips:
+            continue
 
-    for domain in domains:
-        for ip in sorted(resolve_domain(domain)):
-            if ip in seen:
-                continue
-            seen.add(ip)
-            lines.append(
-                f'add list={list_name} address={ip}'
-            )
+        for ip in ips:
+            net = ipaddress.IPv4Network(f"{ip}/24", strict=False)
+            net_to_domains.setdefault(net, set()).add(domain)
 
-    return "\n".join(lines) + "\n"
+    return net_to_domains
 
 
 def main() -> None:
-    domains = sys.argv[1:] or DEFAULT_DOMAINS
+    net_to_domains = build_networks()
 
-    content = generate_rsc(domains)
-    OUTPUT_PATH.write_text(content, encoding="utf-8")
+    if not net_to_domains:
+        print("No IPs resolved, nothing to write.")
+        return
 
-    addr_count = max(len(content.splitlines()) - 2, 0)
-    print(f"Wrote {OUTPUT_PATH} with {addr_count} addresses")
+    networks = sorted(
+        net_to_domains.keys(),
+        key=lambda n: (int(n.network_address), n.prefixlen),
+    )
+
+    lines: list[str] = []
+
+
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    lines.append("/ip firewall address-list")
+    lines.append(f"remove [find list={ADDRESS_LIST_NAME}]")
+
+    for net in networks:
+        domains = ",".join(sorted(net_to_domains[net]))
+        line = (
+            f'add list={ADDRESS_LIST_NAME} address={net.with_prefixlen} '
+            f'comment="{domains}"'
+        )
+        lines.append(line)
+
+    content = "\n".join(lines) + "\n"
+    OUTPUT_FILE.write_text(content, encoding="utf-8")
+    print(f"Wrote {OUTPUT_FILE} with {len(networks)} networks.")
 
 
 if __name__ == "__main__":
